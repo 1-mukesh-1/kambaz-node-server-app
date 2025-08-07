@@ -13,7 +13,11 @@ export default function QueryParameters(app) {
                 result = parseInt(a) * parseInt(b);
                 break;
             case "divide":
-                result = parseInt(a) / parseInt(b);
+                if (parseInt(b) !== 0) {
+                    result = parseInt(a) / parseInt(b);
+                } else {
+                    result = "Cannot divide by zero";
+                }
                 break;
             default:
                 result = "Invalid operation";
