@@ -1,8 +1,8 @@
 const module = {
-    id: "M123",
-    name: "Web Development Basics",
-    description: "Learn fundamentals of web development using HTML, CSS, and JS.",
-    course: "CS5610"
+    id: "0000",
+    name: "web dev course",
+    description: "test desc",
+    course: "HG54"
 };
 
 export default function Module(app) {
