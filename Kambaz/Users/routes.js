@@ -1,6 +1,7 @@
 import * as dao from "./dao.js";
 import * as courseDao from "../Courses/dao.js";
 import * as enrollmentsDao from "../Enrollments/dao.js";
+
 export default function UserRoutes(app) {
     const createUser = (req, res) => {
         const newUser = dao.createUser(req.body);
@@ -77,16 +78,33 @@ export default function UserRoutes(app) {
         enrollmentsDao.enrollUserInCourse(currentUser._id, courseId);
         res.sendStatus(200);
     };
+
     const unenrollUserFromCourse = (req, res) => {
-        const currentUser = req.session["currentUser"];
-        const { courseId } = req.params;
-        if (!currentUser || currentUser._id !== userId) {
-            res.sendStatus(401);
-            return;
+        try {
+            const currentUser = req.session["currentUser"];
+            const { courseId, userId } = req.params;
+            
+            console.log("Unenroll request - currentUser:", currentUser?._id, "userId:", userId, "courseId:", courseId);
+            
+            if (!currentUser) {
+                console.log("No current user in session");
+                return res.sendStatus(401);
+            }
+            
+            if (currentUser._id !== userId && currentUser.role !== "FACULTY") {
+                console.log("Unauthorized unenroll attempt");
+                return res.sendStatus(401);
+            }
+            
+            enrollmentsDao.unenrollUserFromCourse(userId, courseId);
+            console.log("Successfully unenrolled user", userId, "from course", courseId);
+            res.sendStatus(200);
+        } catch (error) {
+            console.error("Error in unenrollUserFromCourse:", error);
+            res.status(500).json({ message: "Failed to unenroll user" });
         }
-        enrollmentsDao.unenrollUserFromCourse(userId, courseId);
-        res.sendStatus(200);
     };
+
     app.post("/api/users/:userId/courses/:courseId/enroll", enrollUserInCourse);
     app.delete("/api/users/:userId/courses/:courseId/unenroll", unenrollUserFromCourse);
     app.post("/api/users/current/courses", createCourse);
