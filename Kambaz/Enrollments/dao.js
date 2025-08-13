@@ -1,68 +1,64 @@
-import Database from "../Database/index.js";
-import { v4 as uuidv4 } from "uuid";
+import model from "./model.js";
 
-export function enrollUserInCourse(userId, courseId) {
-    const { enrollments } = Database;
-
-    const existingEnrollment = enrollments.find(
-        enrollment => enrollment.user === userId && enrollment.course === courseId
-    );
-
-    if (existingEnrollment) {
-        console.log("User", userId, "is already enrolled in course", courseId);
-        return existingEnrollment;
+export async function checkEnrollmentExists(userId, courseId) {
+    try {
+        const enrollment = await model.findOne({ user: userId, course: courseId });
+        console.log("Enrollment exists check for user", userId, "in course", courseId, ":", !!enrollment);
+        return !!enrollment;
+    } catch (error) {
+        throw new Error(`Failed to check enrollment: ${error.message}`);
     }
-
-    const newEnrollment = { _id: uuidv4(), user: userId, course: courseId };
-    enrollments.push(newEnrollment);
-    console.log("Added new enrollment:", newEnrollment);
-    return newEnrollment;
 }
 
-export function unenrollUserFromCourse(userId, courseId) {
-    const { enrollments } = Database;
-    const initialLength = enrollments.length;
-
-    console.log("Before unenroll - enrollments:", enrollments.length);
-    console.log("Looking for enrollment with user:", userId, "course:", courseId);
-
-    const enrollmentToRemove = enrollments.find(
-        enrollment => enrollment.user === userId && enrollment.course === courseId
-    );
-
-    if (!enrollmentToRemove) {
-        console.log("No enrollment found to remove for user", userId, "in course", courseId);
-        return false;
+export async function findEnrollmentsForUser(userId) {
+    try {
+        return await model.find({ user: userId });
+    } catch (error) {
+        throw new Error(`Failed to find enrollments for user ${userId}: ${error.message}`);
     }
-
-    console.log("Found enrollment to remove:", enrollmentToRemove);
-
-    Database.enrollments = enrollments.filter(
-        (enrollment) => !(enrollment.user === userId && enrollment.course === courseId)
-    );
-
-    const finalLength = Database.enrollments.length;
-    console.log("After unenroll - enrollments:", finalLength);
-    console.log("Removed", initialLength - finalLength, "enrollment(s)");
-
-    return initialLength > finalLength;
 }
 
-export function checkEnrollmentExists(userId, courseId) {
-    const { enrollments } = Database;
-    const exists = enrollments.some(
-        enrollment => enrollment.user === userId && enrollment.course === courseId
-    );
-    console.log("Enrollment exists check for user", userId, "in course", courseId, ":", exists);
-    return exists;
+export async function findEnrollmentsForCourse(courseId) {
+    try {
+        return await model.find({ course: courseId });
+    } catch (error) {
+        throw new Error(`Failed to find enrollments for course ${courseId}: ${error.message}`);
+    }
 }
 
-export function findEnrollmentsForUser(userId) {
-    const { enrollments } = Database;
-    return enrollments.filter(enrollment => enrollment.user === userId);
+export async function findCoursesForUser(userId) {
+    try {
+        const enrollments = await model.find({ user: userId }).populate("course");
+        return enrollments.map((enrollment) => enrollment.course).filter(course => course);
+    } catch (error) {
+        throw new Error(`Failed to find courses for user ${userId}: ${error.message}`);
+    }
 }
 
-export function findEnrollmentsForCourse(courseId) {
-    const { enrollments } = Database;
-    return enrollments.filter(enrollment => enrollment.course === courseId);
+export async function findUsersForCourse(courseId) {
+    try {
+        const enrollments = await model.find({ course: courseId }).populate("user");
+        return enrollments.map((enrollment) => enrollment.user).filter(user => user);
+    } catch (error) {
+        throw new Error(`Failed to find users for course ${courseId}: ${error.message}`);
+    }
+}
+
+export async function enrollUserInCourse(user, course) {
+    try {
+        return await model.create({ user, course, _id: `${user}-${course}` });
+    } catch (error) {
+        if (error.code === 11000) {
+            throw new Error("User already enrolled in this course");
+        }
+        throw new Error(`Failed to enroll user ${user} in course ${course}: ${error.message}`);
+    }
+}
+
+export async function unenrollUserFromCourse(user, course) {
+    try {
+        return await model.deleteOne({ user, course });
+    } catch (error) {
+        throw new Error(`Failed to unenroll user ${user} from course ${course}: ${error.message}`);
+    }
 }
