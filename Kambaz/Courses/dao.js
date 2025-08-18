@@ -36,8 +36,8 @@ export async function findCourseById(courseId) {
 
 export async function createCourse(course) {
     try {
-        delete course._id;
-        return await model.create(course);
+        const newCourse = { ...course, _id: uuidv4() };
+        return await model.create(newCourse);
     } catch (error) {
         throw new Error(`Failed to create course: ${error.message}`);
     }
