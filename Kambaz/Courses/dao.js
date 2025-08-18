@@ -5,29 +5,15 @@ export async function findAllCourses() {
     try {
         return await model.find();
     } catch (error) {
-        console.error("Error in findAllCourses:", error);
         throw new Error(`Failed to find courses: ${error.message}`);
-    }
-}
-
-export async function createCourse(course) {
-    try {
-        console.log("Creating course with data:", course);
-        const newCourse = await model.create(course);
-        console.log("Course created successfully:", newCourse);
-        return newCourse;
-    } catch (error) {
-        console.error("Error creating course:", error);
-        throw new Error(`Failed to create course: ${error.message}`);
     }
 }
 
 export async function findCoursesForEnrolledUser(userId) {
     try {
         const enrollments = await EnrollmentModel.find({ user: userId }).populate('course');
-        return enrollments.map(enrollment => enrollment.course).filter(course => course);
+        return enrollments.map(enrollment => enrollment.course).filter(course => course); // Filter out null courses
     } catch (error) {
-        console.error("Error finding courses for user:", error);
         throw new Error(`Failed to find courses for user ${userId}: ${error.message}`);
     }
 }
@@ -36,7 +22,6 @@ export async function findCoursesByIds(courseIds) {
     try {
         return await model.find({ _id: { $in: courseIds } });
     } catch (error) {
-        console.error("Error finding courses by IDs:", error);
         throw new Error(`Failed to find courses by IDs: ${error.message}`);
     }
 }
@@ -45,28 +30,23 @@ export async function findCourseById(courseId) {
     try {
         return await model.findById(courseId);
     } catch (error) {
-        console.error("Error finding course by ID:", error);
         throw new Error(`Failed to find course ${courseId}: ${error.message}`);
     }
 }
 
-<<<<<<< HEAD
-=======
 export async function createCourse(course) {
     try {
-        delete course._id;
-        return await model.create(course);
+        const newCourse = { ...course, _id: uuidv4() };
+        return await model.create(newCourse);
     } catch (error) {
         throw new Error(`Failed to create course: ${error.message}`);
     }
 }
 
->>>>>>> parent of 276232e (dao fix)
 export async function deleteCourse(courseId) {
     try {
         return await model.deleteOne({ _id: courseId });
     } catch (error) {
-        console.error("Error deleting course:", error);
         throw new Error(`Failed to delete course ${courseId}: ${error.message}`);
     }
 }
@@ -75,7 +55,6 @@ export async function updateCourse(courseId, courseUpdates) {
     try {
         return await model.updateOne({ _id: courseId }, { $set: courseUpdates });
     } catch (error) {
-        console.error("Error updating course:", error);
         throw new Error(`Failed to update course ${courseId}: ${error.message}`);
     }
 }
