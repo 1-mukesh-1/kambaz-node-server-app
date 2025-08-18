@@ -1,4 +1,3 @@
-// Kambaz/Courses/dao.js
 import model from "./model.js";
 import EnrollmentModel from "../Enrollments/model.js";
 
@@ -13,19 +12,8 @@ export async function findAllCourses() {
 
 export async function createCourse(course) {
     try {
-        console.log("Creating course with data:", course);        
-        const courseData = {
-            name: course.name,
-            number: course.number,
-            startDate: course.startDate,
-            endDate: course.endDate,
-            department: course.department,
-            credits: course.credits || 3,
-            description: course.description,
-            author: course.author
-        };
-        
-        const newCourse = await model.create(courseData);
+        console.log("Creating course with data:", course);
+        const newCourse = await model.create(course);
         console.log("Course created successfully:", newCourse);
         return newCourse;
     } catch (error) {
