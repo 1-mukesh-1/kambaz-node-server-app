@@ -50,6 +50,18 @@ export async function findCourseById(courseId) {
     }
 }
 
+<<<<<<< HEAD
+=======
+export async function createCourse(course) {
+    try {
+        delete course._id;
+        return await model.create(course);
+    } catch (error) {
+        throw new Error(`Failed to create course: ${error.message}`);
+    }
+}
+
+>>>>>>> parent of 276232e (dao fix)
 export async function deleteCourse(courseId) {
     try {
         return await model.deleteOne({ _id: courseId });
