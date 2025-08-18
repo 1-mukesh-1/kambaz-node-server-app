@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 const courseSchema = new mongoose.Schema({
    _id: { 
      type: String, 
-     default: uuidv4
+     default: uuidv4 
    },
    name: { type: String, required: true },
    number: { type: String, required: true },
@@ -14,6 +14,6 @@ const courseSchema = new mongoose.Schema({
    credits: { type: Number, default: 3 },
    description: String,
    author: String,
- },
- { collection: "courses" }
-);
+}, { collection: "courses" });
+
+export default courseSchema;
