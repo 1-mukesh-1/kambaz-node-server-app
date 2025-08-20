@@ -1,29 +1,61 @@
-import Database from "../Database/index.js";
+import model from "./model.js";
+import EnrollmentModel from "../Enrollments/model.js";
 import { v4 as uuidv4 } from "uuid";
-export function findAllCourses() {
-    return Database.courses;
+
+export async function findAllCourses() {
+    try {
+        return await model.find();
+    } catch (error) {
+        throw new Error(`Failed to find courses: ${error.message}`);
+    }
 }
-export function findCoursesForEnrolledUser(userId) {
-    const { courses, enrollments } = Database;
-    const enrolledCourses = courses.filter((course) =>
-        enrollments.some((enrollment) => enrollment.user === userId && enrollment.course === course._id));
-    return enrolledCourses;
+
+export async function findCoursesForEnrolledUser(userId) {
+    try {
+        const enrollments = await EnrollmentModel.find({ user: userId }).populate('course');
+        return enrollments.map(enrollment => enrollment.course).filter(course => course); // Filter out null courses
+    } catch (error) {
+        throw new Error(`Failed to find courses for user ${userId}: ${error.message}`);
+    }
 }
-export function createCourse(course) {
-    const newCourse = { ...course, _id: uuidv4() };
-    Database.courses = [...Database.courses, newCourse];
-    return newCourse;
+
+export async function findCoursesByIds(courseIds) {
+    try {
+        return await model.find({ _id: { $in: courseIds } });
+    } catch (error) {
+        throw new Error(`Failed to find courses by IDs: ${error.message}`);
+    }
 }
-export function deleteCourse(courseId) {
-    const { courses, enrollments } = Database;
-    Database.courses = courses.filter((course) => course._id !== courseId);
-    Database.enrollments = enrollments.filter(
-        (enrollment) => enrollment.course !== courseId
-    );
+
+export async function findCourseById(courseId) {
+    try {
+        return await model.findById(courseId);
+    } catch (error) {
+        throw new Error(`Failed to find course ${courseId}: ${error.message}`);
+    }
 }
-export function updateCourse(courseId, courseUpdates) {
-    const { courses } = Database;
-    const course = courses.find((course) => course._id === courseId);
-    Object.assign(course, courseUpdates);
-    return course;
+
+export async function createCourse(course) {
+    try {
+        const newCourse = { ...course, _id: uuidv4() };
+        return await model.create(newCourse);
+    } catch (error) {
+        throw new Error(`Failed to create course: ${error.message}`);
+    }
+}
+
+export async function deleteCourse(courseId) {
+    try {
+        return await model.deleteOne({ _id: courseId });
+    } catch (error) {
+        throw new Error(`Failed to delete course ${courseId}: ${error.message}`);
+    }
+}
+
+export async function updateCourse(courseId, courseUpdates) {
+    try {
+        return await model.updateOne({ _id: courseId }, { $set: courseUpdates });
+    } catch (error) {
+        throw new Error(`Failed to update course ${courseId}: ${error.message}`);
+    }
 }
